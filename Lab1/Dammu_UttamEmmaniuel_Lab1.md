@@ -25,10 +25,10 @@ UCB consistently got better long-term average rewards than ε-greedy over 1,000 
 
 Even so, ε-greedy is still useful.  It is a reliable baseline because it is simple and works well all the time, even in environments where the best arm can change over time.  In those situations, a small constant ε lets the agent keep learning instead of getting stuck.  These tests show that UCB is the better choice for problems that don't change much, while ε-greedy is still a good choice when the environment is less stable.
 
-![Average Reward vs Time](lab1/figs/avg_reward_vs_time.png)  
+![Average Reward vs Time](figs/avg_reward_vs_time.png)  
 **Figure 1.** Average reward per timestep across 1,000 runs of 2,000 steps for ε-greedy (ε = 0.01, 0.1, 0.2) and UCB (c = 1.0, 2.0) agents on a 10-armed Gaussian bandit. UCB achieves higher long-term average reward, particularly for c = 2.0, while ε-greedy with ε = 0.1 provides a balanced performance. UCB’s uncertainty-driven exploration allows faster convergence to optimal behavior, consistent with Sutton & Barto (2018, Ch. 2).  
 
-![Optimal Action vs Time](lab1/figs/optimal_action_vs_time.png)  
+![Optimal Action vs Time](figs/optimal_action_vs_time.png)  
 **Figure 2.** Percentage of optimal-action selections over 1,000 runs × 2,000 steps comparing ε-greedy (ε = 0.01, 0.1, 0.2) and UCB (c = 1.0, 2.0). UCB agents approach near-100% optimal-action frequency within the first 500 steps, while ε-greedy with ε = 0.1 converges more slowly, and ε = 0.01 remains below 90%. Directed exploration via confidence bounds demonstrates greater sample efficiency than random exploration.
 
 
