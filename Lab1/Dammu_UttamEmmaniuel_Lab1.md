@@ -1,6 +1,8 @@
 # Lab 1 — Multi-Armed Bandit Testbed and Gymnasium Environment Exploration
 
 ## Section 1. Project Overview 
+
+## Part 1
 This lab examines the exploration-exploitation tradeoff in the k-armed bandit issue, a fundamental reinforcement learning framework discussed by Sutton and Barto in Chapter 2. In the bandit scenario, an agent repeatedly chooses from k actions (arms), and each action gives a random reward from an unknown distribution. There is no concept of "state" evolving over time, nor are any subsequent consequences.   The idea is to keep picking the better arm over and over again until you get the most overall reward.  The agent's main problem is finding a balance between exploration (trying out different arms to get better estimates) and exploitation (picking the arm that looks best for now).  This stress is a big part of how reinforcement learning works.
 
 I used two strategies for choosing actions: ε-greedy and Upper Confidence Bound (UCB). The ε-greedy policy picks the best arm most of the time, but with a chance of ε, it picks a random arm. This makes sure that all actions are still being looked into, so the agent doesn't get stuck on a bad arm just because it got lucky and got rewards early on. UCB, on the other hand, is a more focused way to explore. Instead of exploring randomly, it gives each arm a "uncertainty bonus" that is added to its estimated value. Then it picks the arm with the highest sum of (estimated value + bonus). UCB tends to explore actions it is less sure about because arms that have been tried less often have higher uncertainty bonuses. This should make exploration work better than ε-greedy's random choices.
@@ -31,6 +33,43 @@ Even so, ε-greedy is still useful.  It is a reliable baseline because it is sim
 ![Optimal Action vs Time](figs/optimal_action_vs_time.png)  
 **Figure 2.** Percentage of optimal-action selections over 1,000 runs × 2,000 steps comparing ε-greedy (ε = 0.01, 0.1, 0.2) and UCB (c = 1.0, 2.0). UCB agents approach near-100% optimal-action frequency within the first 500 steps, while ε-greedy with ε = 0.1 converges more slowly, and ε = 0.01 remains below 90%. Directed exploration via confidence bounds demonstrates greater sample efficiency than random exploration.
 
+## Part 2 - Exploring Gymnasium Environments (FrozenLake & Taxi)
+
+- This section looks at two common Gymnasium environments, FrozenLake-v1 and Taxi-v3, to link what we know about Markov Decision Processes (MDPs) with real-world reinforcement-learning APIs. Both are discrete MDPs with clear state (S), action (A), transition (P), reward (R), and discount (γ).
+A basic random-policy agent was created to show how well the system works.
+
+| Environment   | Observation Space | Action Space | Episodes | Avg Reward (100 eps) |
+| ------------- | ----------------- | ------------ | -------- | -------------------- |
+| FrozenLake-v1 | Discrete (16)     | Discrete (4) | 100      | ≈ 0.010              |
+| Taxi-v3       | Discrete (500)    | Discrete (6) | 100      | ≈ –774.0             |
+
+**FrozenLake-v1**
+A 4×4 grid world where the agent has to get to the goal without falling into holes.
+Because transitions are random, agents who try to make them happen don't often succeed, so the average reward is almost zero.
+This illustrates that environments with sparse rewards necessitate exploration and value-driven learning.
+
+**Taxi-v3**
+There are 500 states and 6 actions in this environment: move, pick up, and drop off.
+Random policies get a lot of bad rewards because of step penalties and the costs of breaking the rules.
+The agent does a lot of exploring, but it doesn't plan ahead, so it doesn't do well.
+
+### Mapping MDP to Gymnasium.
+
+| MDP Element    | Gymnasium Implementation                         |
+| -------------- | ------------------------------------------------ |
+| State (S)      | `observation` from `env.reset()` or `env.step()` |
+| Action (A)     | `action` sent to `env.step()`                    |
+| Reward (R)     | Returned from `env.step()`                       |
+| Transition (P) | Implicit in environment dynamics                 |
+| Discount (γ)   | Defined by agent algorithm, not environment      |
+
+These experiments show how Gymnasium fits into the MDP framework by separating the agent's policy (π) from the environment dynamics (P, R).
+
+### Conclusion
+
+The results of both the multi-armed bandit trials and the Gymnasium explorations highlight the shift from stateless decision-making to fully sequential Markov Decision Processes (MDPs).
+The ε-greedy and UCB agents illustrated how alternative ways of exploring can change how quickly you learn. The FrozenLake and Taxi experiments highlighted how random surroundings and high reward density can change baseline performance.
+We will employ Dynamic Programming, Monte Carlo, and Temporal-Difference approaches to determine the best policies and value functions over the following three weeks. This lab sets the stage for that.
 
 ## Section 3. AI Use Reflection (250-350 words)
 ### Initial Interaction
