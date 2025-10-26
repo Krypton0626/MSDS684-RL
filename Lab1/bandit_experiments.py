@@ -1,11 +1,11 @@
 import os
 import sys
 
-# --- PATH FIX so imports work no matter where we run from ---
+# --- PATH FIX ---
 repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
-# -----------------------------------------------------------
+# ----------------
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,7 +23,6 @@ def run_single_episode(agent_type, agent_param, env_seed, n_steps=2000, n_arms=1
     """
     env = TenArmedBanditEnv(n_arms=n_arms, seed=env_seed)
     obs, info = env.reset()
-    optimal_arm = info["optimal_arm"]
 
     if agent_type == "egreedy":
         agent = EpsilonGreedyAgent(n_arms=n_arms, epsilon=agent_param, rng_seed=env_seed)
@@ -44,7 +43,6 @@ def run_single_episode(agent_type, agent_param, env_seed, n_steps=2000, n_arms=1
 
         rewards[t] = reward
         optimal_picks[t] = 1 if action == step_info["optimal_arm"] else 0
-
         obs = obs_next
 
     return rewards, optimal_picks, label
@@ -58,19 +56,16 @@ def run_experiment(
     n_arms=10,
 ):
     """
-    Runs epsilon-greedy and UCB across many independent bandit problems.
+    Runs epsilon-greedy and UCB across many bandit instances.
     Returns:
         results[label] = {
             "avg_reward": (n_steps,),
             "optimal_pct": (n_steps,)
         }
-    label examples:
-        "epsilon=0.1"
-        "ucb_c=2.0"
     """
     results = {}
 
-    # Sweep epsilon-greedy variants
+    # ε-greedy sweep
     for eps in egreedy_epsilons:
         all_rewards = np.zeros((n_runs, n_steps))
         all_optimal = np.zeros((n_runs, n_steps))
@@ -91,7 +86,7 @@ def run_experiment(
             "optimal_pct": all_optimal.mean(axis=0) * 100.0,
         }
 
-    # Sweep UCB variants
+    # UCB sweep
     for c_val in ucb_cs:
         all_rewards = np.zeros((n_runs, n_steps))
         all_optimal = np.zeros((n_runs, n_steps))
