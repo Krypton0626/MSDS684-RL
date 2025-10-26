@@ -15,10 +15,10 @@ This bandit setup is connected to the fundamentals of the Markov Decision Proces
 ### GitHub Repository URL
 https://github.com/Krypton0626/MSDS684-RL 
 
-### Implementation Summary (100-150 words)
+### Implementation Summary 
 I made a custom 10-armed bandit environment in NumPy that acts like the Gymnasium API (reset(), step()). A normal distribution gives each arm a genuine mean reward, while pulling an arm gives you a noisy sample from that arm. After that, I set up two agents: ε-greedy and UCB. The ε-greedy agent choose the arm that it thinks is the greatest most of the time, but with a chance of ε, it picks one at random. The UCB agent picks the arm with the largest upper confidence bound, which is a balance between value estimates and uncertainty. I executed both algorithms for 2,000 time steps across 1,000 separate iterations, recording (1) the average reward over time and (2) the percentage of instances in which the optimal arm was selected. I made a graph of both metrics for ε values of 0.01, 0.1, and 0.2 and UCB confidence levels of 1.0 and 2.0.
 
-### Key Results & Analysis (400-600 words + plots)
+### Key Results & Analysis 
 When you look at the ε-greedy and UCB agents, you can see how exploration and exploitation work together in reinforcement learning. The ε-greedy method is easy to understand, but it relies heavily on the ε value. When ε = 0.01, the agent almost always takes advantage of the situation and quickly picks the first arm that seems good, even if it's not the best one. That means that the short-term rewards are good, but the long-term learning isn't as helpful. Things are more balanced when you raise ε to 0.1. It looks at enough options to fix early mistakes, but it still spends most of its time on the best ones. But when ε = 0.2, the agent looks around too much and gives up good performance for information it doesn't really need.
 
 The UCB algorithm is more careful.  Instead of exploring at random, it gives each arm a "uncertainty bonus" that makes it more likely to be explored. This means that less-tried arms are explored more often.  This bonus gets smaller as the algorithm learns, and the focus naturally shifts to exploitation.  The exploration constant c tells the agent how aggressively to explore. Higher c values make the agent more likely to take risks.
@@ -71,7 +71,7 @@ The results of both the multi-armed bandit trials and the Gymnasium explorations
 The ε-greedy and UCB agents illustrated how alternative ways of exploring can change how quickly you learn. The FrozenLake and Taxi experiments highlighted how random surroundings and high reward density can change baseline performance.
 We will employ Dynamic Programming, Monte Carlo, and Temporal-Difference approaches to determine the best policies and value functions over the following three weeks. This lab sets the stage for that.
 
-## Section 3. AI Use Reflection (250-350 words)
+## Section 3. AI Use Reflection 
 ### Initial Interaction
 
 At the start of the lab, I used ChatGPT to help me figure out how to organize the whole project according to the course rubric and Sutton and Barto's framework for reinforcement learning. It guided me through implementing a Gymnasium-style environment with reset() and step() functions, defining ε-greedy and UCB agents, and setting up a reproducible workspace using VS Code, Git, and a Python virtual environment. I also used AI help to set up the GitHub repository and keep track of the right commit documentation after each stage of the experiment.
@@ -95,7 +95,7 @@ AI support sped up debugging and helped me understand better, but I double-check
 
 This project helped me understand better how to balance theoretical reinforcement learning with real-world use. Using AI as a tutor encouraged students to actively solve problems instead of just writing code. Keeping a clean Git history taught me how to use version control properly, and debugging with AI help helped me understand how algorithms work better. In general, this lab showed that real learning in RL comes from trying things out, doing them again, and thinking about them.
 
-## Section 4. Speaker Notes (5-7 bullets)
+## Section 4. Speaker Notes 
 
 The lab looks into the exploration–exploitation tradeoff by using ε-greedy and UCB strategies in a 10-armed Gaussian bandit setting.
 
