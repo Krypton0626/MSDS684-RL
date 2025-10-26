@@ -31,21 +31,21 @@ class UCBAgent:
     """
     Upper Confidence Bound (UCB) bandit agent.
 
-    Action selection rule:
-        a_t = argmax_a [ Q[a] + c * sqrt( ln(t) / N[a] ) ]
+    Selects action using:
+        a_t = argmax_a [ Q[a] + c * sqrt(ln(t) / N[a]) ]
 
-    Where:
-    - Q[a] is the estimated action value of arm a
-    - N[a] is how many times we've picked arm a
-    - t is the timestep (1-based)
-    - c controls exploration strength
+    where:
+        - Q[a]: estimated value of arm a
+        - N[a]: number of times arm a was chosen
+        - t: current timestep
+        - c: exploration parameter
     """
 
     def __init__(self, n_arms: int, c: float, rng_seed: int | None = None):
+        import numpy as np
         self.n_arms = n_arms
         self.c = c
         self.rng = np.random.default_rng(rng_seed)
-
         self.Q = np.zeros(n_arms)
         self.N = np.zeros(n_arms, dtype=int)
         self.t = 0
@@ -53,15 +53,15 @@ class UCBAgent:
     def select_action(self):
         self.t += 1
 
-        # If we haven't tried all arms yet, force-try unvisited arms first
+        # Force explore each arm at least once
         untried = np.where(self.N == 0)[0]
         if len(untried) > 0:
             return int(self.rng.choice(untried))
 
-        # Otherwise use UCB score
+        # UCB score = estimate + confidence bonus
         confidence_bonus = self.c * np.sqrt(np.log(self.t) / self.N)
-        ucb_score = self.Q + confidence_bonus
-        return int(np.argmax(ucb_score))
+        ucb_values = self.Q + confidence_bonus
+        return int(np.argmax(ucb_values))
 
     def update(self, action: int, reward: float):
         self.N[action] += 1
