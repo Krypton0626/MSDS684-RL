@@ -24,3 +24,10 @@ def explore_env(env_name, episodes=100):
 if __name__ == "__main__":
     explore_env("FrozenLake-v1")
     explore_env("Taxi-v3")
+
+if __name__ == "__main__":
+    avg1 = explore_env("FrozenLake-v1")
+    avg2 = explore_env("Taxi-v3")
+    print("\nSummary:")
+    print(f"FrozenLake-v1 avg reward: {avg1:.3f}")
+    print(f"Taxi-v3 avg reward: {avg2:.3f}")
