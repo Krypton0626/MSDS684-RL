@@ -1,4 +1,4 @@
-# Lab 1 Report Draft
+# Lab 1 — Multi-Armed Bandit Testbed and Gymnasium Environment Exploration
 
 ## Section 1. Project Overview 
 This lab examines the exploration-exploitation tradeoff in the k-armed bandit issue, a fundamental reinforcement learning framework discussed by Sutton and Barto in Chapter 2. In the bandit scenario, an agent repeatedly chooses from k actions (arms), and each action gives a random reward from an unknown distribution. There is no concept of "state" evolving over time, nor are any subsequent consequences.   The idea is to keep picking the better arm over and over again until you get the most overall reward.  The agent's main problem is finding a balance between exploration (trying out different arms to get better estimates) and exploitation (picking the arm that looks best for now).  This stress is a big part of how reinforcement learning works.
