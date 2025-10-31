@@ -43,19 +43,19 @@ def run_case(spec: GridSpec, tag: str, gamma=0.9, theta=1e-6):
 def main():
     ensure_results()
 
-    # Deterministic 4x4
+    # Deterministic 5x5
     spec_det = GridSpec(
-        size=4, terminals=(0, 15), obstacles=(), step_reward=-1.0,
+        size=5, terminals=(0, 15), obstacles=(), step_reward=-1.0,
         goal_reward=0.0, intended_prob=1.0, stochastic=False
     )
-    run_case(spec_det, tag="grid_det_4x4", gamma=0.9, theta=1e-6)
+    run_case(spec_det, tag="grid_det_5x5", gamma=0.9, theta=1e-6)
 
-    # Stochastic 4x4 (80% intended, 10% perpendicular each)
+    # Stochastic 5x5 (80% intended, 10% perpendicular each)
     spec_sto = GridSpec(
-        size=4, terminals=(0, 15), obstacles=(), step_reward=-1.0,
+        size=5, terminals=(0, 15), obstacles=(), step_reward=-1.0,
         goal_reward=0.0, intended_prob=0.8, stochastic=True
     )
-    run_case(spec_sto, tag="grid_sto_4x4", gamma=0.9, theta=1e-6)
+    run_case(spec_sto, tag="grid_sto_5x5", gamma=0.9, theta=1e-6)
 
 
 if __name__ == "__main__":
