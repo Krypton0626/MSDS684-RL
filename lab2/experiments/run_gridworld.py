@@ -52,8 +52,8 @@ def main():
 
     # Stochastic 5x5 (80% intended, 10% perpendicular each)
     spec_sto = GridSpec(
-        size=5, terminals=(0, 15), obstacles=(), step_reward=-1.0,
-        goal_reward=0.0, intended_prob=0.8, stochastic=True
+        size=5, terminals=(0, 24), obstacles=(), step_reward=-1.0,
+        goal_reward=0.0, intended_prob=0.7, stochastic=True
     )
     run_case(spec_sto, tag="grid_sto_5x5", gamma=0.9, theta=1e-6)
 
