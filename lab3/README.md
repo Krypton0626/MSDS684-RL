@@ -40,7 +40,7 @@
 - policy_no_ace.png
 - learning_curve.png
 
-** Environment**
+**Environment**
 
 | Component | Description                                    |
 | :-------- | :--------------------------------------------- |
