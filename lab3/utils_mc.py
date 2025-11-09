@@ -3,8 +3,8 @@ from collections import defaultdict
 
 def first_visit_indices(seq):
     """
-    Return the set of indices that correspond to the first time
-    each element in seq appears (by equality). Works when seq items are hashable.
+    Return indices (as a set) for the first time each element appears in seq.
+    Works for hashable items (e.g., tuples).
     """
     seen = set()
     out = set()
@@ -25,8 +25,7 @@ def compute_returns(rewards, gamma=1.0):
 
 def smooth(y, k=101):
     """
-    Simple moving average smoothing.
-    If k is larger than the data, returns unsmoothed y.
+    Moving-average smoothing. If k<=1 or k>len(y), returns y unchanged.
     """
     y = np.asarray(y, dtype=float)
     if k <= 1 or k > len(y):

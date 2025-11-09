@@ -1,6 +1,8 @@
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+
 from utils_mc import grid_value_maps, grid_policy_maps, smooth
 
 def plot_surface(ps, ds, Z, title, out_path):
@@ -37,7 +39,6 @@ def plot_policy(ps, ds, P, title, out_path):
 def plot_learning_curve(returns, out_path, smooth_k=5001):
     y = np.asarray(returns, dtype=float)
     x = np.arange(len(y))
-    # pick a reasonable smoothing window relative to length
     k = min(smooth_k, max(1, (len(y)//10)*2 + 1))
     y_s = smooth(y, k=k)
     xs = np.arange(len(y_s))
@@ -55,8 +56,26 @@ def plot_learning_curve(returns, out_path, smooth_k=5001):
     plt.close()
 
 if __name__ == "__main__":
-    Q = np.load("data/Q_blackjack.npy", allow_pickle=True).item()
-    returns = np.load("data/episode_returns.npy")
+    ap = argparse.ArgumentParser(description="Visualize Blackjack MC results")
+    ap.add_argument("--tag", type=str, default="", help="use data/*_TAG.npy if provided")
+    ap.add_argument("--q-path", type=str, default="", help="explicit path to Q .npy (overrides --tag)")
+    ap.add_argument("--ret-path", type=str, default="", help="explicit path to returns .npy (overrides --tag)")
+    args = ap.parse_args()
+
+    if args.q-path:
+        q_path = args.q-path
+    else:
+        tag = f"_{args.tag}" if args.tag else ""
+        q_path = f"data/Q_blackjack{tag}.npy"
+
+    if args.ret-path:
+        ret_path = args.ret-path
+    else:
+        tag = f"_{args.tag}" if args.tag else ""
+        ret_path = f"data/episode_returns{tag}.npy"
+
+    Q = np.load(q_path, allow_pickle=True).item()
+    returns = np.load(ret_path)
 
     # Value surfaces
     ps, ds, Z_u, Z_n = grid_value_maps(Q)
