@@ -62,14 +62,14 @@ if __name__ == "__main__":
     ap.add_argument("--ret-path", type=str, default="", help="explicit path to returns .npy (overrides --tag)")
     args = ap.parse_args()
 
-    if args.q-path:
-        q_path = args.q-path
+    if args.q_path:
+        q_path = args.q_path
     else:
         tag = f"_{args.tag}" if args.tag else ""
         q_path = f"data/Q_blackjack{tag}.npy"
 
-    if args.ret-path:
-        ret_path = args.ret-path
+    if args.ret_path:
+        ret_path = args.ret_path
     else:
         tag = f"_{args.tag}" if args.tag else ""
         ret_path = f"data/episode_returns{tag}.npy"
@@ -91,3 +91,4 @@ if __name__ == "__main__":
     plot_learning_curve(returns, "figs/learning_curve.png", smooth_k=5001)
 
     print("Saved plots to figs/")
+
