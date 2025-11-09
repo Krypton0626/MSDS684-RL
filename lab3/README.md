@@ -42,10 +42,11 @@
 
 **Environment**
 
-| Component | Description                                    |
-| :-------- | :--------------------------------------------- |
-| Env       | `Blackjack-v1`                                 |
-| Reward    | +1 win, 0 draw, −1 loss                        |
-| State     | (player_sum 4–21, dealer 1–10, usable_ace T/F) |
-| Actions   | 0 = stick, 1 = hit                             |
-| γ         | 1.0                                            |
+| Component      | Description                                    |
+| :------------- | :--------------------------------------------- |
+| **Env**        | `Blackjack-v1`                                 |
+| **Reward**     | +1 (win), 0 (draw), −1 (loss)                  |
+| **State**      | (player_sum 4–21, dealer 1–10, usable_ace T/F) |
+| **Actions**    | 0 = stick, 1 = hit                             |
+| **Discount γ** | 1.0                                            |
+
