@@ -1,121 +1,201 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+import gymnasium as gym
 
 
-def epsilon_greedy_action(Q, state, epsilon, n_actions):
+def compute_mean_and_ci(returns_2d):
     """
-    ε-greedy action selection for a given state.
+    Compute mean and 95% confidence interval over seeds.
 
-    With probability ε: choose a random action.
-    With probability 1-ε: choose the greedy (argmax) action.
-    """
-    if np.random.random() < epsilon:
-        return np.random.randint(n_actions)
-    return int(np.argmax(Q[state]))
-
-
-def _set_seed(seed):
-    """Utility: set NumPy RNG seed if provided."""
-    if seed is not None:
-        np.random.seed(seed)
-
-
-def sarsa(env, num_episodes, alpha=0.5, gamma=1.0, epsilon=0.1, seed=None):
-    """
-    On-policy TD control (SARSA) for CliffWalking-v0.
+    Parameters
+    ----------
+    returns_2d : np.ndarray
+        Shape [num_seeds, num_episodes].
 
     Returns
     -------
+    mean : np.ndarray
+    lower : np.ndarray
+    upper : np.ndarray
+    """
+    mean = returns_2d.mean(axis=0)
+    stderr = returns_2d.std(axis=0, ddof=1) / np.sqrt(returns_2d.shape[0])
+    ci = 1.96 * stderr
+    lower = mean - ci
+    upper = mean + ci
+    return mean, lower, upper
+
+
+def plot_learning_curves(
+    sarsa_returns,
+    qlearning_returns,
+    out_path,
+    title="CliffWalking: SARSA vs Q-learning",
+):
+    """
+    Plot mean episode returns with 95% CIs for SARSA and Q-learning.
+
+    Parameters
+    ----------
+    sarsa_returns : np.ndarray
+        Shape [num_seeds, num_episodes].
+    qlearning_returns : np.ndarray
+        Shape [num_seeds, num_episodes].
+    out_path : str or Path
+        Where to save the figure.
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    mean_sarsa, low_sarsa, up_sarsa = compute_mean_and_ci(sarsa_returns)
+    mean_q, low_q, up_q = compute_mean_and_ci(qlearning_returns)
+
+    episodes = np.arange(1, mean_sarsa.shape[0] + 1)
+
+    plt.figure(figsize=(10, 5))
+    # SARSA
+    plt.plot(episodes, mean_sarsa, label="SARSA")
+    plt.fill_between(episodes, low_sarsa, up_sarsa, alpha=0.2)
+    # Q-learning
+    plt.plot(episodes, mean_q, label="Q-learning")
+    plt.fill_between(episodes, low_q, up_q, alpha=0.2)
+
+    plt.xlabel("Episode")
+    plt.ylabel("Sum of rewards per episode")
+    plt.title(title)
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
+
+
+def plot_value_heatmap(Q, shape, out_path, title="State-value function V(s)"):
+    """
+    Visualize V(s) = max_a Q(s,a) as a heatmap.
+
+    Parameters
+    ----------
     Q : np.ndarray
-        Learned action-value function of shape [n_states, n_actions].
-    episode_returns : np.ndarray
-        1D array of length num_episodes with total return per episode.
+        [n_states, n_actions].
+    shape : tuple
+        Grid shape, e.g. (4, 12) for CliffWalking.
+    out_path : str or Path
     """
-    _set_seed(seed)
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    n_states = env.observation_space.n
-    n_actions = env.action_space.n
+    V = np.max(Q, axis=1).reshape(shape)
 
-    Q = np.zeros((n_states, n_actions), dtype=np.float64)
-    episode_returns = np.zeros(num_episodes, dtype=np.float64)
-
-    for ep in range(num_episodes):
-
-        # IMPORTANT: do NOT pass seed here every episode
-        state, _ = env.reset()
-
-        action = epsilon_greedy_action(Q, state, epsilon, n_actions)
-
-        done = False
-        total_reward = 0.0
-
-        while not done:
-            next_state, reward, terminated, truncated, _ = env.step(action)
-            done = terminated or truncated
-            total_reward += reward
-
-            if not done:
-                next_action = epsilon_greedy_action(Q, next_state, epsilon, n_actions)
-                td_target = reward + gamma * Q[next_state, next_action]
-            else:
-                # Terminal state: no bootstrap
-                td_target = reward
-
-            td_error = td_target - Q[state, action]
-            Q[state, action] += alpha * td_error
-
-            state = next_state
-            if not done:
-                action = next_action
-
-        episode_returns[ep] = total_reward
-
-    return Q, episode_returns
+    plt.figure(figsize=(12, 3))
+    im = plt.imshow(V, origin="upper", interpolation="nearest")
+    plt.colorbar(im, label="V(s)")
+    plt.title(title)
+    plt.xticks(range(shape[1]))
+    plt.yticks(range(shape[0]))
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
 
 
-def q_learning(env, num_episodes, alpha=0.5, gamma=1.0, epsilon=0.1, seed=None):
+def plot_policy_arrows(Q, shape, out_path, title="Greedy policy π(s)"):
     """
-    Off-policy TD control (Q-learning) for CliffWalking-v0.
+    Visualize a greedy policy as arrow symbols on the grid.
 
-    Returns
-    -------
+    Action mapping assumed:
+    0: Up, 1: Right, 2: Down, 3: Left (Gym CliffWalking default).
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    n_states, n_actions = Q.shape
+    assert n_states == shape[0] * shape[1], "Shape does not match Q."
+
+    arrow_map = {0: "↑", 1: "→", 2: "↓", 3: "←"}
+
+    V = np.max(Q, axis=1).reshape(shape)
+    greedy_actions = np.argmax(Q, axis=1).reshape(shape)
+
+    plt.figure(figsize=(12, 3))
+    im = plt.imshow(V, origin="upper", interpolation="nearest")
+    plt.colorbar(im, label="V(s)")
+    plt.title(title)
+
+    for r in range(shape[0]):
+        for c in range(shape[1]):
+            a = greedy_actions[r, c]
+            plt.text(
+                c,
+                r,
+                arrow_map.get(int(a), "?"),
+                ha="center",
+                va="center",
+                fontsize=10,
+                color="black",
+            )
+
+    plt.xticks(range(shape[1]))
+    plt.yticks(range(shape[0]))
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
+
+
+def plot_greedy_trajectory(env_name, Q, max_steps, out_path, title="Sample trajectory"):
+    """
+    Roll out a greedy policy from the start state and plot the path on the grid.
+
+    Parameters
+    ----------
+    env_name : str
+        e.g. "CliffWalking-v0".
     Q : np.ndarray
-        Learned action-value function of shape [n_states, n_actions].
-    episode_returns : np.ndarray
-        1D array of length num_episodes with total return per episode.
+        Learned Q-table.
+    max_steps : int
+        Safety cap on episode length.
+    out_path : str or Path
     """
-    _set_seed(seed)
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    n_states = env.observation_space.n
-    n_actions = env.action_space.n
+    env = gym.make(env_name)
+    n_cols = 12  # specific to CliffWalking
+    n_rows = 4
 
-    Q = np.zeros((n_states, n_actions), dtype=np.float64)
-    episode_returns = np.zeros(num_episodes, dtype=np.float64)
+    state, _ = env.reset()
+    done = False
 
-    for ep in range(num_episodes):
+    states = [state]
 
-        # IMPORTANT: do NOT set seed every episode
-        state, _ = env.reset()
+    for _ in range(max_steps):
+        action = int(np.argmax(Q[state]))
+        next_state, reward, terminated, truncated, _ = env.step(action)
+        states.append(next_state)
+        done = terminated or truncated
+        if done:
+            break
+        state = next_state
 
-        done = False
-        total_reward = 0.0
+    env.close()
 
-        while not done:
-            action = epsilon_greedy_action(Q, state, epsilon, n_actions)
+    rows = [s // n_cols for s in states]
+    cols = [s % n_cols for s in states]
 
-            next_state, reward, terminated, truncated, _ = env.step(action)
-            done = terminated or truncated
-            total_reward += reward
-
-            if not done:
-                td_target = reward + gamma * np.max(Q[next_state])
-            else:
-                td_target = reward
-
-            td_error = td_target - Q[state, action]
-            Q[state, action] += alpha * td_error
-
-            state = next_state
-
-        episode_returns[ep] = total_reward
-
-    return Q, episode_returns
+    plt.figure(figsize=(12, 3))
+    plt.imshow(
+        np.zeros((n_rows, n_cols)),
+        origin="upper",
+        interpolation="nearest",
+        cmap="gray_r",
+    )
+    plt.plot(cols, rows, marker="o")
+    plt.scatter(cols[0], rows[0], marker="s", s=80, label="Start")
+    plt.scatter(cols[-1], rows[-1], marker="*", s=120, label="End")
+    plt.title(title)
+    plt.xticks(range(n_cols))
+    plt.yticks(range(n_rows))
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
