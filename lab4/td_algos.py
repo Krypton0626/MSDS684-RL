@@ -39,8 +39,10 @@ def sarsa(env, num_episodes, alpha=0.5, gamma=1.0, epsilon=0.1, seed=None):
     episode_returns = np.zeros(num_episodes, dtype=np.float64)
 
     for ep in range(num_episodes):
-        # Gymnasium reset returns (obs, info)
-        state, _ = env.reset(seed=seed)
+
+        # IMPORTANT: do NOT pass seed here every episode
+        state, _ = env.reset()
+
         action = epsilon_greedy_action(Q, state, epsilon, n_actions)
 
         done = False
@@ -90,7 +92,9 @@ def q_learning(env, num_episodes, alpha=0.5, gamma=1.0, epsilon=0.1, seed=None):
     episode_returns = np.zeros(num_episodes, dtype=np.float64)
 
     for ep in range(num_episodes):
-        state, _ = env.reset(seed=seed)
+
+        # IMPORTANT: do NOT set seed every episode
+        state, _ = env.reset()
 
         done = False
         total_reward = 0.0
