@@ -10,7 +10,6 @@ from utils_td import (
     plot_greedy_trajectory,
 )
 
-
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 FIGS_DIR = BASE_DIR / "figs"
@@ -25,7 +24,7 @@ def run_td_experiments(
 ):
     """
     Run multi-seed SARSA and Q-learning on CliffWalking-v0.
-    Save episode return arrays and basic figures.
+    Save episode return arrays and generate plots.
     """
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     FIGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -35,13 +34,15 @@ def run_td_experiments(
     sarsa_returns_all = np.zeros((num_seeds, num_episodes), dtype=np.float64)
     qlearning_returns_all = np.zeros((num_seeds, num_episodes), dtype=np.float64)
 
-    # We'll keep the final Q from the last seed for visualization.
     Q_sarsa_last = None
     Q_q_last = None
 
     for seed in range(num_seeds):
         print(f"[Seed {seed}] Running SARSA...")
         env = gym.make(env_name)
+        # Seed env once per run (not every episode)
+        env.reset(seed=seed)
+
         Q_sarsa, returns_sarsa = sarsa(
             env,
             num_episodes=num_episodes,
@@ -57,6 +58,8 @@ def run_td_experiments(
 
         print(f"[Seed {seed}] Running Q-learning...")
         env = gym.make(env_name)
+        env.reset(seed=seed)
+
         Q_q, returns_q = q_learning(
             env,
             num_episodes=num_episodes,
@@ -70,7 +73,7 @@ def run_td_experiments(
         qlearning_returns_all[seed] = returns_q
         Q_q_last = Q_q
 
-    # Save raw data
+    # Save episode returns
     np.save(DATA_DIR / "episode_returns_sarsa.npy", sarsa_returns_all)
     np.save(DATA_DIR / "episode_returns_qlearning.npy", qlearning_returns_all)
 
@@ -97,7 +100,7 @@ def run_td_experiments(
         title="V(s) from Q-learning (greedy)",
     )
 
-    # Policy arrows
+    # Greedy policies
     plot_policy_arrows(
         Q_sarsa_last,
         shape=shape,
@@ -111,7 +114,7 @@ def run_td_experiments(
         title="Greedy policy from Q-learning",
     )
 
-    # Sample greedy trajectories
+    # Sample trajectories
     plot_greedy_trajectory(
         env_name,
         Q_sarsa_last,
@@ -127,13 +130,15 @@ def run_td_experiments(
         title="Sample greedy trajectory (Q-learning Q)",
     )
 
-    print("Experiment complete.")
+    print("TD experiment complete.")
     print(f"Saved returns to: {DATA_DIR}")
     print(f"Saved figures to: {FIGS_DIR}")
 
 
 def main():
-    run_td_experiments()
+    # For a first test, you can temporarily lower these:
+    # run_td_experiments(num_episodes=100, num_seeds=5)
+    run_td_experiments(num_episodes=500, num_seeds=30)
 
 
 if __name__ == "__main__":
