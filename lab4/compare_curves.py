@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 
-from utils_td import plot_learning_curves
+from .utils_td import plot_learning_curves
 
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"

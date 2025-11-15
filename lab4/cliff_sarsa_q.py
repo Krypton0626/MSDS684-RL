@@ -2,8 +2,10 @@ import numpy as np
 import gymnasium as gym
 from pathlib import Path
 
-from td_algos import sarsa, q_learning
-from utils_td import (
+
+from lab4.utils_td import plot_learning_curves
+from lab4.td_algos import sarsa, q_learning
+from lab4.utils_td import (
     plot_learning_curves,
     plot_value_heatmap,
     plot_policy_arrows,
@@ -29,7 +31,7 @@ def run_td_experiments(
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     FIGS_DIR.mkdir(parents=True, exist_ok=True)
 
-    env_name = "CliffWalking-v0"
+    env_name = "CliffWalking-v1"
 
     sarsa_returns_all = np.zeros((num_seeds, num_episodes), dtype=np.float64)
     qlearning_returns_all = np.zeros((num_seeds, num_episodes), dtype=np.float64)
