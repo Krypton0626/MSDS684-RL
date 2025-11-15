@@ -1,4 +1,4 @@
-# Lab 2 — Dynamic Programming
+# Lab 4- Temporal Differences
 
 ## Section 1. Project Overview
 

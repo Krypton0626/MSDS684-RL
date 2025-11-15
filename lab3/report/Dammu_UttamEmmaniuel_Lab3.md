@@ -1,4 +1,4 @@
-# Lab 2 — Dynamic Programming
+# Lab 3 — Monte-Carlo Methods
 
 ## Section 1. Project Overview
 
