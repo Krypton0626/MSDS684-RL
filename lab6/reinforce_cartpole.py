@@ -199,3 +199,38 @@ def train_reinforce_baseline_single_seed(
 
     env.close()
     return np.array(episode_returns, dtype=np.float32)
+
+
+def run_multi_seed(
+    algo: str,
+    num_seeds: int = 10,
+    num_episodes: int = 500,
+    gamma: float = 0.99,
+) -> np.ndarray:
+    """
+    Run either 'reinforce' or 'reinforce_baseline' for multiple seeds.
+
+    Returns:
+        returns_matrix: np.ndarray of shape (num_seeds, num_episodes)
+    """
+    all_returns = []
+
+    for seed in range(num_seeds):
+        if algo == "reinforce":
+            ep_returns = train_reinforce_single_seed(
+                num_episodes=num_episodes,
+                gamma=gamma,
+                seed=seed,
+            )
+        elif algo == "reinforce_baseline":
+            ep_returns = train_reinforce_baseline_single_seed(
+                num_episodes=num_episodes,
+                gamma=gamma,
+                seed=seed,
+            )
+        else:
+            raise ValueError(f"Unknown algo: {algo}")
+
+        all_returns.append(ep_returns)
+
+    return np.stack(all_returns, axis=0)
