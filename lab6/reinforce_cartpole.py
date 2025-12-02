@@ -96,5 +96,5 @@ def train_reinforce_baseline_single_seed(
     seed: int = 0,
     device: str = "cpu",
 ) -> np.ndarray:
-    # TODO: implement REINFORCE with value baseline in later commit
+    # # TODO baseline version will use: advantages = returns_t - values.detach()
     raise NotImplementedError
