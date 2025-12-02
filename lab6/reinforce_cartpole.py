@@ -1,10 +1,21 @@
+# lab6/reinforce_cartpole.py
+
 import numpy as np
 import torch
 import torch.optim as optim
 from torch.distributions import Categorical
 
-from networks import PolicyNetwork, ValueNetwork
-from utils import set_global_seed, make_cartpole_env, compute_returns
+# Support both:
+# - running as part of the lab6 package (from repo root)
+# - running as standalone scripts inside the lab6 folder
+try:
+    # Package-style imports (when called via run_lab6.py at repo root)
+    from .networks import PolicyNetwork, ValueNetwork
+    from .utils import set_global_seed, make_cartpole_env, compute_returns
+except ImportError:
+    # Script-style imports (when running inside lab6/)
+    from networks import PolicyNetwork, ValueNetwork
+    from utils import set_global_seed, make_cartpole_env, compute_returns
 
 
 def train_reinforce_single_seed(
