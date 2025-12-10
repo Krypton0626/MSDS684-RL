@@ -1,14 +1,14 @@
 """
 runner_lab7.py
 
-Runs all Lab 7 experiments on Taxi-v3 and saves results to lab7/data/.
+Runs all Lab 7 experiments on Taxi-v3 and MountainCar-v0 and saves results
+to lab7/data/.
 
 Experiments:
-1. Q-learning vs Dyna-Q with n_planning in {0, 5, 10, 50}
-2. Dyna-Q vs Dyna-Q+ in a dynamic Taxi environment
-3. Uniform Dyna-Q vs Prioritized Sweeping
-
-After running, you can call viz_lab7.run_all_plots() to generate figures.
+1) Q-learning vs Dyna-Q (Taxi-v3)
+2) Dyna-Q vs Dyna-Q+ in a dynamic Taxi environment
+3) Uniform Dyna-Q vs Prioritized Sweeping (Taxi-v3)
+4) (Optional) Neural dynamics + model-based policy gradient (MountainCar-v0)
 """
 
 from typing import Iterable
@@ -25,6 +25,16 @@ from .dyna_agents import (
 )
 from .dyna_models import TaxiDynamicRewardWrapper
 from .viz_lab7 import run_all_plots
+
+# Optional neural dynamics extension (MountainCar-v0, PyTorch)
+# These imports will fail gracefully if PyTorch is not installed
+try:
+    from .neural_dynamics import NeuralDynamicsModel, ReplayBuffer, train_dynamics
+    from .model_based_pg import PolicyNet, reinforce_with_model
+
+    HAS_TORCH_EXT = True
+except Exception:
+    HAS_TORCH_EXT = False
 
 
 # ---------------------------------------------------------------------
@@ -70,7 +80,9 @@ def _train_dyna_q_dynamic(
         steps = 0
 
         while not done and steps < max_steps_per_episode:
-            action = epsilon_greedy(Q, state, n_actions, epsilon)
+            from .utils_lab7 import epsilon_greedy as eps_greedy
+
+            action = eps_greedy(Q, state, n_actions, epsilon)
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
 
@@ -282,19 +294,100 @@ def experiment_prioritized_sweeping(
 
 
 # ---------------------------------------------------------------------
+# Experiment 4 (Optional): Neural Dynamics + Model-based PG (MountainCar)
+# ---------------------------------------------------------------------
+
+
+def experiment_neural_dynamics_pg(
+    collect_steps: int = 8000,
+    dyn_epochs: int = 25,
+    sim_episodes: int = 300,
+):
+    """
+    Optional extension (requires PyTorch):
+
+    - Collect transitions from real MountainCar-v0 environment
+    - Train a neural network dynamics model on (s, a, r, s')
+    - Train a policy using REINFORCE on simulated rollouts from the learned model
+    - Save simulated returns to lab7/data/ for analysis
+    """
+    if not HAS_TORCH_EXT:
+        print(
+            "Skipping neural dynamics experiment: PyTorch or neural modules not available."
+        )
+        return
+
+    make_dirs()
+
+    env = gym.make("MountainCar-v0")
+
+    # 1) Collect real transitions into replay buffer
+    buffer = ReplayBuffer()
+    state, _ = env.reset()
+    for _ in range(collect_steps):
+        action = env.action_space.sample()
+        next_state, reward, terminated, truncated, _ = env.step(action)
+
+        buffer.push(state, action, reward, next_state)
+
+        done = terminated or truncated
+        if done:
+            state, _ = env.reset()
+        else:
+            state = next_state
+
+    env.close()
+
+    # 2) Train neural dynamics model on collected data
+    model = NeuralDynamicsModel()
+    model = train_dynamics(
+        model,
+        buffer,
+        epochs=dyn_epochs,
+        batch_size=256,
+        lr=1e-3,
+    )
+
+    # 3) Train policy using simulated rollouts from learned model
+    policy = PolicyNet()
+    sim_returns = reinforce_with_model(
+        model,
+        policy,
+        episodes=sim_episodes,
+        gamma=0.99,
+        lr=1e-3,
+    )
+
+    np.save(DATA_DIR / "nn_model_based_pg_returns.npy", np.asarray(sim_returns))
+    print("Experiment 4 complete: Neural dynamics + model-based PG (results saved).")
+
+
+# ---------------------------------------------------------------------
 # High-level entry point
 # ---------------------------------------------------------------------
 
 
 def run_all_lab7_experiments():
     """
-    Run all Lab 7 experiments and generate plots.
+    Run all core Lab 7 experiments and generate plots.
+
+    Experiments:
+      1) Q-learning vs Dyna-Q (Taxi-v3)
+      2) Dyna-Q vs Dyna-Q+ in dynamic Taxi
+      3) Uniform Dyna-Q vs Prioritized Sweeping
+      4) (Optional) Neural dynamics + model-based PG (MountainCar-v0)
     """
     experiment_q_vs_dyna()
     experiment_dyna_q_plus_dynamic()
     experiment_prioritized_sweeping()
 
-    # After we have .npy results, make all figures:
+    # Optional extension experiment (does not affect Taxi results if it fails)
+    try:
+        experiment_neural_dynamics_pg()
+    except Exception as e:
+        print("Optional neural dynamics experiment failed:", e)
+
+    # After Taxi-based experiments, generate all plots
     run_all_plots()
     print("All Lab 7 experiments and plots complete.")
 
