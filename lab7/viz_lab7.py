@@ -171,6 +171,33 @@ def plot_uniform_vs_prioritized():
     )
 
 
+def plot_nn_model_based_pg():
+    """
+    Plot the returns of model-based policy gradient trained on the learned neural dynamics model.
+    """
+    path = DATA_DIR / "nn_model_based_pg_returns.npy"
+    if not path.exists():
+        print("No neural dynamics PG results found; skipping plot.")
+        return
+
+    returns = np.load(path)
+
+    plt.figure(figsize=(8,5))
+    plt.plot(returns, label="Model-Based PG (simulated)")
+    plt.xlabel("Episode")
+    plt.ylabel("Return")
+    plt.title("Neural Dynamics Model-Based Policy Gradient Returns")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+
+    out_path = FIGS_DIR / "nn_model_based_pg.png"
+    plt.savefig(out_path)
+    plt.close()
+
+    print(f"Saved: {out_path}")
+
+
 def run_all_plots():
     """
     Convenience function: generate all Lab 7 plots after experiments
@@ -179,3 +206,4 @@ def run_all_plots():
     plot_q_vs_dyna()
     plot_dyna_q_vs_dyna_q_plus_dynamic()
     plot_uniform_vs_prioritized()
+    plot_nn_model_based_pg()
