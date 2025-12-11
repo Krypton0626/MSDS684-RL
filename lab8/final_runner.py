@@ -27,7 +27,7 @@ ROOT_DIR = Path(__file__).resolve().parent
 DATA_DIR = ROOT_DIR / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-ENV_ID = "LunarLander-v2"
+ENV_ID = "CartPole-v1"
 
 
 def train_single_config(
