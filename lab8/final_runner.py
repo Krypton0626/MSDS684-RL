@@ -1,32 +1,38 @@
 """
-Lab 8 – Modern Deep RL Exploration with PPO on LunarLander-v2.
+Lab 8 – Modern Deep RL Exploration with PPO on CartPole-v1.
 
-This script runs PPO with Stable-Baselines3 over a small hyperparameter grid:
+This module runs PPO (Stable-Baselines3) over a small hyperparameter grid:
 - 3 learning rates
 - 2 network architectures
 - 2 batch sizes (ablation)
 - 3 random seeds
 
-Results (evaluation curves + metadata) are saved to lab8/data/ppo_results.npy.
+For each configuration, it:
+- Trains PPO for a fixed number of timesteps
+- Periodically evaluates the policy
+- Logs mean/std evaluation return
+
+All results are saved to:
+    lab8/data/ppo_results.npy
 """
 
 from __future__ import annotations
 
-import os
 import time
 from pathlib import Path
-from typing import Dict, Tuple, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 from stable_baselines3 import PPO
 
 from .utils import make_env, evaluate_model, set_global_seeds
 
-
+# Root directory for this lab
 ROOT_DIR = Path(__file__).resolve().parent
 DATA_DIR = ROOT_DIR / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+# Using CartPole-v1 to avoid Box2D / box2d-py issues on some setups
 ENV_ID = "CartPole-v1"
 
 
@@ -41,19 +47,36 @@ def train_single_config(
 ) -> Dict:
     """
     Train PPO for a single hyperparameter configuration and return logged results.
+
+    Args:
+        learning_rate: PPO learning rate.
+        net_arch: Hidden layer sizes for the MLP policy, e.g. (64, 64).
+        batch_size: PPO batch size.
+        total_timesteps: Total timesteps to train this run.
+        eval_freq: Evaluate every eval_freq timesteps.
+        n_eval_episodes: Number of episodes for each evaluation.
+        seed: Random seed.
+
+    Returns:
+        A dict containing hyperparameters, evaluation timesteps, mean/std rewards,
+        and training time. This dict is later stored in a numpy array.
     """
 
     print(
-        f"Starting run: lr={learning_rate}, net_arch={net_arch}, "
-        f"batch_size={batch_size}, seed={seed}"
+        f"Starting run: env={ENV_ID}, lr={learning_rate}, "
+        f"net_arch={net_arch}, batch_size={batch_size}, seed={seed}"
     )
 
+    # Reproducibility
     set_global_seeds(seed)
 
+    # Environment
     env = make_env(ENV_ID, seed=seed)
 
+    # Policy architecture
     policy_kwargs = dict(net_arch=list(net_arch))
 
+    # PPO model
     model = PPO(
         policy="MlpPolicy",
         env=env,
@@ -71,9 +94,10 @@ def train_single_config(
     timesteps_done = 0
     start_time = time.time()
 
+    # Training loop with periodic evaluation
     while timesteps_done < total_timesteps:
-        # Train for eval_freq timesteps, but keep global time.
-        model.learn(total_timesteps=eval_freq, reset_num_timesteps=False, progress_bar=False)
+        # Train for eval_freq timesteps, keep global time
+        model.learn(total_timesteps=eval_freq, reset_num_timesteps=False)
         timesteps_done += eval_freq
 
         mean_r, std_r = evaluate_model(model, env, n_eval_episodes=n_eval_episodes)
@@ -83,8 +107,8 @@ def train_single_config(
         eval_stds.append(std_r)
 
         print(
-            f"[PPO] steps={timesteps_done:7d} "
-            f"lr={learning_rate:.1e} arch={net_arch} batch={batch_size} "
+            f"[PPO] steps={timesteps_done:7d}  "
+            f"lr={learning_rate:.1e}  arch={net_arch}  batch={batch_size:3d}  "
             f"eval_mean={mean_r:.2f} +/- {std_r:.2f}"
         )
 
@@ -109,15 +133,16 @@ def train_single_config(
 
 def main():
     """
-    Run the full hyperparameter experiment grid and save results.
+    Run the full hyperparameter experiment grid and save results to disk.
     """
 
-    # Hyperparameter grid (matches assignment spec)
+    # Hyperparameter grid (matches the assignment spec)
     learning_rates = [1e-4, 3e-4, 1e-3]
     net_archs = [(64, 64), (256, 256)]
-    batch_sizes = [64, 256]  # simple ablation
+    batch_sizes = [64, 256]  # simple batch size ablation
     seeds = [0, 1, 2]
 
+    # Training configuration
     total_timesteps = 200_000
     eval_freq = 10_000
     n_eval_episodes = 10
